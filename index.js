@@ -1,145 +1,156 @@
 const Discord = require('discord.js');
-const {prefix, token} = require('./config.json');
 const client = new Discord.Client();
+
+const config = require('./config.json');
+const command = require('./command')
 
 client.once('ready', () => {
 	console.log('Ready!');
-});
 
-client.on('message', message => {
-	if (!message.content.startsWith(prefix) || message.author.bot) return;
-			const args = message.content.slice(prefix.length).trim().split(/ +/);
-			const command = args.shift().toLowerCase();
+	command(client, 'ping', (message) =>{
+		message.channel.send('Pong!')
+	})
 
-			//Ping Command
-		if(command ==='ping'){
-			message.channel.send('Pong.');
+	command(client, 'ban', (message) =>{
+		const { member, mentions } = message
+
+		const tag = `<@${member.id}>`
+
+		if(member.hasPermission('ADMINISTRATOR') ||
+		   member.hasPermission('BAN_MEMBERS')
+		){
+			const target = mentions.users.first();
+
+			if(message.author === target){
+				message.channel.send(`${tag} You cant ban yourself`)
+				return 0;
+			}
+			if(target){
+				const targetMember = message.guild.members.cache.get(target.id)
+				targetMember.ban();
+				message.channel.send(`${tag} That user has been banned`)
+			} else {
+				message.channel.send(`${tag} Please specify someone to ban.`)
+			}
 		} else {
-			if(command === 'pong'){
-				message.channel.send('Ping.');
-			}
+			message.channel.send(`${tag} You do not have permissions to ban.`)
 		}
+	})//End of ban
+	command(client, 'kick', (message) =>{
+		const { member, mentions } = message
 
-			//Kick Command
-			if(command ==='kick'){
-				var kick = "kick"
-				punishments(kick);
-			}
-			//Ban Command
-			if(command ==='ban'){
-				var ban = "ban"
-				punishments(ban);
-			}
-			//Server-Mute Command
-			if(command ==='mute'){
-				var mute = "mute"
-				punishments(mute);
-			}
-			//Server-Deafen Command
-			if(command ==='deafen'){
-				var deafen = "deafen"
-				punishments(deafen);
-			}
-			//Disconect Command
-			if(command ==='disconnect'){
-				var disconnect = "disconnect"
-				punishments(disconnect);
-			}
-			//Move-Player-ToChannel
-			//Lmao(Random Image from google)
+		const tag = `<@${member.id}>`
 
-			function punishments(pun){
-				if (!message.mentions.users.size) {
-					return message.reply('You need to tag a user!');
+		if(member.hasPermission('ADMINISTRATOR') ||
+		   member.hasPermission('KICK_MEMBERS')
+		){
+			const target = mentions.users.first();
+
+			if(message.author === target){
+				message.channel.send(`${tag} You cant kick yourself`)
+				return 0;
+			}
+			if(target){
+				const targetMember = message.guild.members.cache.get(target.id)
+				targetMember.kick();
+				message.channel.send(`${tag} That user has been kicked from the server`)
+			} else {
+				message.channel.send(`${tag} Please specify someone to kick.`)
+			}
+		} else {
+			message.channel.send(`${tag} You do not have permissions to kick.`)
+		}
+	})//End of kick
+	command(client, 'mute', (message) =>{
+		const { member, mentions } = message
+
+		const tag = `<@${member.id}>`
+
+		if(member.hasPermission('ADMINISTRATOR') ||
+		   member.hasPermission('MUTE_MEMBERS')
+		){
+			const target = mentions.users.first();
+
+			if(message.author === target){
+				message.channel.send(`${tag} You cant mute yourself`)
+				return 0;
+			}
+			if(target){
+				const targetMember = message.guild.members.cache.get(target.id)
+
+				if(targetMember.voice.serverMute == true){
+					targetMember.voice.setMute(false);
+					message.channel.send(`${tag} The user has been unmuted`)
+				}else {
+				targetMember.voice.setMute(true);
+				message.channel.send(`${tag} That user has been muted`)
 				}
-
-				const taggedUser = message.mentions.users.first();
-
-				switch(pun){
-					case "ban":{
-						if(taggedUser){
-							const member = message.guild.member(taggedUser);
-							if(member){
-							member.ban({
-									reason: 'They were bad!',
-								})
-								.then(() => {
-									message.reply(`The user '${user.tag}' has been banned`);
-								})
-								.catch(err => {
-									message.reply('I was unable to ban the member');
-									console.error(err);
-									return 0;
-								});
-							}
-						}
-						break;
-					}
-					case "kick":{
-						if(taggedUser){
-							const member = message.guild.member(taggedUser);
-							if(member){
-								member.kick('lalalala').then(()=>
-								message.reply(`The user '${taggedUser.username}' has been kicked`)
-								).catch(err =>{
-									message.reply('I was unable to kick this member');
-									console.error(err);
-									return 0;
-								});
-							}
-						}
-						break;
-					}
-					case "mute":{
-						if(taggedUser){
-							const member = message.guild.member(taggedUser);
-							if(member.voice.serverMute == true){
-								member.voice.setMute(false);
-								message.reply(`The user '${taggedUser.username}' has been unmuted`);
-								return 0;
-							} else {
-								if(member){
-									member.voice.setMute(true).then(()=>
-									message.reply(`The user '${taggedUser.username}' has been muted`)
-									).catch(err =>{
-										message.reply('I was unable to mute this member');
-										console.error(err);
-										return 0;
-									});
-								}
-							}
-						}
-						break;
-					}
-					case "deafen":{
-						if(taggedUser){
-							const member = message.guild.member(taggedUser);
-							if(member.voice.serverDeaf == true){
-								member.voice.setDeaf(false);
-								member.voice.setMute(false);
-								message.reply(`The user '${taggedUser.username}' has been undeafened`);
-								return 0;
-							} else {
-								if(member){
-									member.voice.setDeaf(true).then(()=>member.voice.setMute(true),
-									message.reply(`The user '${taggedUser.username}' has been deafened`)
-									).catch(err =>{
-										message.reply('I was unable to deafen this member');
-										console.error(err);
-										return 0;
-									});
-								}
-							}
-						}
-						break;
-					}
-					case "disconnect":{
-
-					}
-				}//switch
+			} else {
+				message.channel.send(`${tag} Please specify someone to mute.`)
 			}
-});
+		} else {
+			message.channel.send(`${tag} You do not have permissions to mute.`)
+		}
+	})//End of Mute
+	command(client, 'deafen', (message) =>{
+		const { member, mentions } = message
+
+		const tag = `<@${member.id}>`
+
+		if(member.hasPermission('ADMINISTRATOR') ||
+		   member.hasPermission('MUTE_MEMBERS')
+		){
+			const target = mentions.users.first();
+
+			if(message.author === target){
+				message.channel.send(`${tag} You cant deafen yourself`)
+				return 0;
+			}
+			if(target){
+				const targetMember = message.guild.members.cache.get(target.id)
+
+				if(targetMember.voice.serverMute == true){
+					targetMember.voice.setMute(false);
+					targetMember.voice.setDeaf(false);
+					message.channel.send(`${tag} The user has been undeafened`)
+				}else {
+				targetMember.voice.setMute(true);
+				targetMember.voice.setDeaf(true);
+				message.channel.send(`${tag} That user has been deafened`)
+				}
+			} else {
+				message.channel.send(`${tag} Please specify someone to deafen.`)
+			}
+		} else {
+			message.channel.send(`${tag} You do not have permissions to deafen.`)
+		}
+	})
+	command(client, 'disconnect', (message) =>{
+		const { member, mentions } = message
+
+		const tag = `<@${member.id}>`
+
+		if(member.hasPermission('ADMINISTRATOR') ||
+		   member.hasPermission('MOVE_MEMBERS')
+		){
+			const target = mentions.users.first();
+			if(target){
+				const targetMember = message.guild.members.cache.get(target.id)
+				if(!targetMember.voice.channel){
+					message.channel.send(`${tag} That user isnt in a channel.`)
+				} else {
+					targetMember.voice.kick();
+					message.channel.send(`${tag} The user ${targetMember} has been kicked from the Voice Channel.`)
+				}
+			} else {
+				message.channel.send(`${tag} Please specify someone to disconnect.`)
+			}
+		} else {
+			message.channel.send(`${tag} You do not have permissions to disconnect.`)
+		}
+	})
 
 
+})
 
-client.login('');
+client.login(config.token);
