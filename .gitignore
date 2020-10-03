@@ -1,2 +1,4 @@
 
 config.json
+ffmpeg/
+node_modules/

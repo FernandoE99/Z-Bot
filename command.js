@@ -1,6 +1,6 @@
 const {prefix} = require('./config.json');
 
-module.exports = (client, aliases, callback) => {
+module.exports = (client, aliases, callback, args) => {
 
     if(typeof aliases === 'string'){
         aliases = [aliases]
@@ -14,7 +14,8 @@ module.exports = (client, aliases, callback) => {
 
                     if (content.startsWith(`${command} `) || content === command){
                         console.log(`Running the command ${command}`);
-                        callback(message);
+                        args = message.content.slice(prefix.length).trim().split(/ +/); 
+                        callback(message, args);
                     }
                 });
     });
